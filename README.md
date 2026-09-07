@@ -1,1 +1,1 @@
-# Handwritten Digits Recognition
+# Handwritten Digits Recognition Project
