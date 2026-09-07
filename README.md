@@ -1,1 +1,1 @@
-# Handwritten Digits Recognition Project
+# Handwritten Digits Recognition Project - CNN from scratch
