@@ -1,3 +1,5 @@
+import numpy as np
+
 class Sequential:
     """Chains a list of layers together (Dense, ReLU, etc.) in order."""
 
@@ -32,3 +34,18 @@ class Sequential:
         for layer in self.layers:
             if hasattr(layer, "eval"):
                 layer.eval()
+
+    def save_weights(self, path):
+        weights = {}
+        for i, layer in enumerate(self.get_trainable_layers()):
+            weights[f"W{i}"] = layer.W
+            weights[f"b{i}"] = layer.b
+        np.savez(path, **weights)
+        print(f"Saved model weights to {path}")
+
+    def load_weights(self, path):
+        data = np.load(path)
+        for i, layer in enumerate(self.get_trainable_layers()):
+            layer.W = data[f"W{i}"]
+            layer.b = data[f"b{i}"]
+        print(f"Loaded model weights from {path}")

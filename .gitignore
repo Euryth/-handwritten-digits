@@ -6,3 +6,4 @@ data/
 __pycache__/
 *.pyc
 dataset_cache.npz
+model_weights.npz
