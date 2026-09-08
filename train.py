@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data_loader import load_dataset, one_hot_encode, train_val_test_split
 from src.layers import Dense
@@ -25,6 +26,59 @@ def iterate_minibatches(X, y, batch_size, shuffle=True):
         yield X[batch_idx], y[batch_idx]
 
 
+def compute_confusion_matrix(y_pred_labels, y_true_labels, num_classes=10):
+    """Manual confusion matrix (no sklearn needed). Rows = true label, cols = predicted label."""
+    matrix = np.zeros((num_classes, num_classes), dtype=np.int64)
+    for true_label, pred_label in zip(y_true_labels, y_pred_labels):
+        matrix[true_label, pred_label] += 1
+    return matrix
+
+
+def plot_training_curves(train_losses, val_accuracies, save_path="training_curves.png"):
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+    axes[0].plot(train_losses, marker="o")
+    axes[0].set_title("Training Loss per Epoch")
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Loss")
+    axes[0].grid(True)
+
+    axes[1].plot(val_accuracies, marker="o", color="green")
+    axes[1].set_title("Validation Accuracy per Epoch")
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Accuracy")
+    axes[1].set_ylim(0, 1.05)
+    axes[1].grid(True)
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    print(f"Saved training curves to {save_path}")
+    plt.close(fig)
+
+
+def plot_confusion_matrix(matrix, save_path="confusion_matrix.png"):
+    fig, ax = plt.subplots(figsize=(7, 6))
+    im = ax.imshow(matrix, cmap="Blues")
+
+    ax.set_xticks(range(10))
+    ax.set_yticks(range(10))
+    ax.set_xlabel("Predicted label")
+    ax.set_ylabel("True label")
+    ax.set_title("Confusion Matrix (Test Set)")
+
+    # annotate each cell with its count
+    for i in range(10):
+        for j in range(10):
+            color = "white" if matrix[i, j] > matrix.max() / 2 else "black"
+            ax.text(j, i, str(matrix[i, j]), ha="center", va="center", color=color, fontsize=8)
+
+    fig.colorbar(im, ax=ax)
+    plt.tight_layout()
+    plt.savefig(save_path)
+    print(f"Saved confusion matrix to {save_path}")
+    plt.close(fig)
+
+
 def main():
     print("Loading dataset...")
     X, y = load_dataset()
@@ -47,8 +101,11 @@ def main():
     num_epochs = 10
     batch_size = 64
 
+    train_loss_history = []
+    val_acc_history = []
+
     for epoch in range(num_epochs):
-        net.train()  # enable dropout
+        net.train()
         epoch_losses = []
 
         for X_batch, y_batch in iterate_minibatches(X_train, y_train, batch_size):
@@ -60,18 +117,29 @@ def main():
             net.backward(grad)
             optimizer.step()
 
-        net.eval()  # disable dropout for validation
+        net.eval()
         val_logits = net.forward(X_val)
         val_acc = accuracy(val_logits, y_val)
 
+        train_loss_history.append(np.mean(epoch_losses))
+        val_acc_history.append(val_acc)
+
         print(f"Epoch {epoch + 1}/{num_epochs} | "
-              f"Train loss: {np.mean(epoch_losses):.4f} | "
+              f"Train loss: {train_loss_history[-1]:.4f} | "
               f"Val accuracy: {val_acc:.4f}")
 
     net.eval()
     test_logits = net.forward(X_test)
     test_acc = accuracy(test_logits, y_test)
     print(f"\nFinal test accuracy: {test_acc:.4f}")
+
+    # --- plots ---
+    plot_training_curves(train_loss_history, val_acc_history)
+
+    y_pred_labels = np.argmax(test_logits, axis=1)
+    y_true_labels = np.argmax(y_test, axis=1)
+    conf_matrix = compute_confusion_matrix(y_pred_labels, y_true_labels)
+    plot_confusion_matrix(conf_matrix)
 
 
 if __name__ == "__main__":
