@@ -22,3 +22,13 @@ class Sequential:
     def predict(self, x):
         # returns raw logits; caller applies argmax or softmax as needed
         return self.forward(x)
+
+    def train(self):
+        for layer in self.layers:
+            if hasattr(layer, "train"):
+                layer.train()
+
+    def eval(self):
+        for layer in self.layers:
+            if hasattr(layer, "eval"):
+                layer.eval()
