@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 from data_loader import load_dataset, one_hot_encode, train_val_test_split
 from src.layers import Dense
@@ -104,6 +105,8 @@ def main():
     train_loss_history = []
     val_acc_history = []
 
+    start_time = time.time()
+
     for epoch in range(num_epochs):
         net.train()
         epoch_losses = []
@@ -127,6 +130,10 @@ def main():
         print(f"Epoch {epoch + 1}/{num_epochs} | "
               f"Train loss: {train_loss_history[-1]:.4f} | "
               f"Val accuracy: {val_acc:.4f}")
+
+
+    elapsed = time.time() - start_time
+    print(f"\nTraining time: {elapsed:.1f} seconds")
 
     net.eval()
     test_logits = net.forward(X_test)
