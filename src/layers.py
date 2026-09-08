@@ -26,7 +26,3 @@ class Dense:
         self.grad_b = np.sum(grad_output, axis=0, keepdims=True)
         grad_input = grad_output @ self.W.T
         return grad_input
-
-    def update(self, lr):
-        self.W -= lr * self.grad_W
-        self.b -= lr * self.grad_b
