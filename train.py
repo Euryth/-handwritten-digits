@@ -133,6 +133,8 @@ def main():
     test_acc = accuracy(test_logits, y_test)
     print(f"\nFinal test accuracy: {test_acc:.4f}")
 
+    net.save_weights("model_weights.npz")
+
     # --- plots ---
     plot_training_curves(train_loss_history, val_acc_history)
 
